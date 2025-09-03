@@ -1,0 +1,3 @@
+{
+    "platforms": ["atmelavr", "espressif8266"]
+}

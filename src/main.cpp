@@ -39,7 +39,7 @@ void loop()
         case '7':
         case '8': {
           Serial.print("command is:");
-          Serial.println(cmd);
+          Serial.println(raw);
           struct hexlib_frame frame;
           int ret = str_to_frame(frame, raw);
           if (ret != -1) {
@@ -58,5 +58,8 @@ void loop()
     }
   }
 
-  delay(100);
+  delay(500);
+
+  sendGetCommand(CHARGER_INTERNAL_TEMP, Serial1);
+  // sendGetCommand(0xEDF0, Serial1);
 }

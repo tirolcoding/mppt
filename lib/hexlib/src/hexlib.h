@@ -8,6 +8,7 @@
 
 #include <inttypes.h>
 #include <WString.h>
+#include <HardwareSerial.h>
 
 #ifndef HEXLIB_H_
 #define HEXLIB_H_
@@ -38,6 +39,9 @@
 #define FLAG_NOT_SUPPORTED 0x2
 #define FLAG_PARAMETER_ERROR 0x4
 
+/* registers */
+#define CHARGER_INTERNAL_TEMP 0xEDDB
+
 /* some global defines */
 #define FRAME_SIZE 50
 #define CHECKSUM_TOTAL 0x55
@@ -67,6 +71,8 @@ int str_to_frame(hexlib_frame &frame, String str);
  * @brief This function takes a hexlib_frame and converts it to a raw string which can be send via serial port.
  */
 String frame_to_str(struct hexlib_frame);
+
+int sendGetCommand(uint16_t id, HardwareSerial serial);
 
 void print_frame(struct hexlib_frame &frame);
 

@@ -15,7 +15,7 @@ int str_to_frame(hexlib_frame &frame, String str) {
 
     if(str.length() > FRAME_SIZE)
         return -1;
-        
+
     /* remove the ':' and cmd */
     String data = str.substring(start + 2, str.indexOf('\n'));
     int num_bytes;
@@ -25,11 +25,6 @@ int str_to_frame(hexlib_frame &frame, String str) {
         num_bytes = data.length() / 2;
     }
 
-    // hexlib_frame *frame = (struct hexlib_frame *)malloc(sizeof(struct hexlib_frame));
-    // memset(frame->buffer, 0 ,FRAME_SIZE);
-
-    /* allocate buffer */
-    
     /* parse the cmd */
     char cmd[2];
     cmd[0] = str.charAt(start + 1);
@@ -71,8 +66,22 @@ void print_frame(struct hexlib_frame &frame) {
     Serial.println();
     for(int i = 0; i < frame.num_bytes; i++) {
         char str[MAX_STRING_SIZE];
-        snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%x ", i, frame.buffer[i]);
+        snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%02X ", i, frame.buffer[i]);
         Serial.print(str);
     }
     Serial.println("\r\n-----------------------------------");
+}
+
+int sendGetCommand(uint16_t id, HardwareSerial serial) {
+    char temp[12];
+    uint16_t reg = __builtin_bswap16(id);
+    /* this will not work since we cannot underflow this nigger */
+    uint8_t checksum = CHECKSUM_TOTAL;
+    checksum -= 0x7;
+    checksum -=  (reg >> 8);
+    checksum -= (reg & 0x00FF);
+    int written = snprintf(temp, sizeof(temp), ":7%04X00%02X\n", reg, checksum);
+
+    Serial1.write(temp);
+    return 0;
 }

@@ -4,17 +4,17 @@
 #define MAX_STRING_SIZE 20
 
 /* Function expects following substring: ':[cmd][data]..[data][check]\n\0' */
-struct hexlib_frame *str_to_frame(String str) {
+int str_to_frame(hexlib_frame &frame, String str) {
     int end = str.lastIndexOf('\0');
     int start = str.lastIndexOf(':');
     if(start < 0 || end < 0) {
         /* invalid string */
         Serial.println("invalid string");
-        return NULL;
+        return -1;
     }
 
     if(str.length() > FRAME_SIZE)
-        return NULL;
+        return -1;
         
     /* remove the ':' and cmd */
     String data = str.substring(start + 2, str.indexOf('\n'));
@@ -25,8 +25,8 @@ struct hexlib_frame *str_to_frame(String str) {
         num_bytes = data.length() / 2;
     }
 
-    hexlib_frame *frame = (struct hexlib_frame *)malloc(sizeof(struct hexlib_frame));
-    memset(frame->buffer, 0 ,FRAME_SIZE);
+    // hexlib_frame *frame = (struct hexlib_frame *)malloc(sizeof(struct hexlib_frame));
+    // memset(frame->buffer, 0 ,FRAME_SIZE);
 
     /* allocate buffer */
     
@@ -34,10 +34,10 @@ struct hexlib_frame *str_to_frame(String str) {
     char cmd[2];
     cmd[0] = str.charAt(start + 1);
     cmd[1] = 0;
-    frame->cmd = strtoul(cmd, NULL, 16);
+    frame.cmd = strtoul(cmd, NULL, 16);
 
     uint8_t buffer[FRAME_SIZE];
-    uint8_t checksum = CHECKSUM_TOTAL - frame->cmd;
+    uint8_t checksum = CHECKSUM_TOTAL - frame.cmd;
     for(uint8_t i = 0; i < num_bytes; i++) {
         char tmp[3];
         tmp[0] = data[(i) *2];
@@ -48,30 +48,30 @@ struct hexlib_frame *str_to_frame(String str) {
             checksum -= buffer[i];
     }
 
-    frame->check = checksum;
-    frame->expected_check = buffer[num_bytes -1];
-    frame->num_bytes = num_bytes;
+    frame.check = checksum;
+    frame.expected_check = buffer[num_bytes -1];
+    frame.num_bytes = num_bytes;
 
     /* fill the frame buffer with switched endianness */
     for(uint8_t i = 0; i < num_bytes; i++) {
-        frame->buffer[i] = buffer[(num_bytes -1) - i];
+        frame.buffer[i] = buffer[(num_bytes -1) - i];
     }
 
-    return frame;
+    return 0;
 }
 
-void print_frame(struct hexlib_frame *frame) {
+void print_frame(struct hexlib_frame &frame) {
     Serial.println("RECEIVED FRAME ...");
     Serial.print("Checksum: 0x");
-    Serial.print(frame->check, 16);
+    Serial.print(frame.check, 16);
     Serial.print("\r\nExcpected checksum: 0x");
-    Serial.print(frame->expected_check, 16);
+    Serial.print(frame.expected_check, 16);
     Serial.print("\r\nCommand: 0x");
-    Serial.print(frame->cmd, 16);
+    Serial.print(frame.cmd, 16);
     Serial.println();
-    for(int i = 0; i < frame->num_bytes; i++) {
+    for(int i = 0; i < frame.num_bytes; i++) {
         char str[MAX_STRING_SIZE];
-        snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%x ", i, frame->buffer[i]);
+        snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%x ", i, frame.buffer[i]);
         Serial.print(str);
     }
     Serial.println("\r\n-----------------------------------");

@@ -61,13 +61,13 @@ struct hexlib_frame {
  * 
  * @param str String parameter
  */
-struct hexlib_frame *str_to_frame(String str);
+int str_to_frame(hexlib_frame &frame, String str);
 
 /**
  * @brief This function takes a hexlib_frame and converts it to a raw string which can be send via serial port.
  */
 String frame_to_str(struct hexlib_frame);
 
-void print_frame(struct hexlib_frame *frame);
+void print_frame(struct hexlib_frame &frame);
 
 #endif // HEXLIB_H_

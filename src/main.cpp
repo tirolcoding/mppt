@@ -40,10 +40,11 @@ void loop()
         case '8': {
           Serial.print("command is:");
           Serial.println(cmd);
-          hexlib_frame *frame = str_to_frame(raw);
-          if (frame != NULL) {
+          struct hexlib_frame frame;
+          int ret = str_to_frame(frame, raw);
+          if (ret != -1) {
             print_frame(frame);
-            free(frame);
+            // free(frame);
           }
         }
           break;

@@ -1,7 +1,6 @@
 /**
  * Library for SmartSolar MPPT
  * 
- * @author Simon Ferchl
  * 
  * 2025
  */

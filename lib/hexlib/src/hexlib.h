@@ -5,12 +5,13 @@
  * 2025
  */
 
+#ifndef HEXLIB_H_
+#define HEXLIB_H_
+
 #include <inttypes.h>
 #include <WString.h>
 #include <HardwareSerial.h>
 
-#ifndef HEXLIB_H_
-#define HEXLIB_H_
 
 /**
  * HEX PROTOCOL defines listed in VE.Direct protocol
@@ -52,6 +53,8 @@ struct hexlib_frame {
     uint8_t num_bytes;
     /* pointer of FRAME_SIZE containing data */
     uint8_t buffer[FRAME_SIZE];
+    /* TODO: implement read/write value */
+    uint32_t value;
     /* calculated checksum */
     uint8_t check;
     /* expected checksum from received frame */
@@ -82,9 +85,14 @@ void sendGetCommand(uint16_t id, HardwareSerial &serial);
 /**
  * @brief Function to parse the stream after a command was sent and print the output to the console
  * 
+ *
+ * @param serial Serial port connected to the mppt
+ * @param console Serial console for debug print
+ * @param frame hexlib_frame to be filled
  * 
+ * @return 1 if a valid response was found, else 0
  */
-void parseIncoming(HardwareSerial &serial, HardwareSerial &console);
+int parseIncoming(HardwareSerial &serial, HardwareSerial &console, struct hexlib_frame &frame);
 
 
 void print_frame(struct hexlib_frame &frame);

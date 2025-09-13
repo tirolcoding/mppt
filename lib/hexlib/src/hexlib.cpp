@@ -3,6 +3,10 @@
 
 #define MAX_STRING_SIZE 20
 
+static void updateValue(struct hexlib_frame &frame) {
+    frame.value = frame.buffer [1] << 8 | frame.buffer[2];
+}
+
 /* Function expects following substring: ':[cmd][data]..[data][check]\n\0' */
 int str_to_frame(hexlib_frame &frame, String str) {
     int end = str.lastIndexOf('\0');
@@ -52,6 +56,8 @@ int str_to_frame(hexlib_frame &frame, String str) {
         frame.buffer[i] = buffer[(num_bytes -1) - i];
     }
 
+    updateValue(frame);
+
     return 0;
 }
 
@@ -69,6 +75,7 @@ void print_frame(struct hexlib_frame &frame) {
         snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%02X ", i, frame.buffer[i]);
         Serial.print(str);
     }
+
     Serial.println("\r\n-----------------------------------");
 }
 
@@ -95,6 +102,9 @@ static void printFrame(HardwareSerial &console, struct hexlib_frame &frame) {
         snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%02X ", i, frame.buffer[i]);
         console.print(str);
     }
+
+    console.print("\r\nRead Value: 0x");
+    console.print(frame.value, 16);
     console.println("\r\n-----------------------------------");
 }
 
@@ -103,7 +113,7 @@ static bool isValidResponse(String line) {
 }
 
 // function is blocking so be careful
-void parseIncoming(HardwareSerial &serial, HardwareSerial &console) {
+int parseIncoming(HardwareSerial &serial, HardwareSerial &console, struct hexlib_frame &frame) {
     /* read input in lines */
     while (serial.available()) {
         String line = serial.readStringUntil('\n');
@@ -122,15 +132,16 @@ void parseIncoming(HardwareSerial &serial, HardwareSerial &console) {
                 case '7':
                 /* cmd set */
                 case '8': {
-                struct hexlib_frame frame;
-                int ret = str_to_frame(frame, line);
-                if (ret != -1) {
-                    print_frame(frame);
-                    // free(frame);
-                }
+                    int ret = str_to_frame(frame, line);
+                    if (ret != -1) {
+                        printFrame(console, frame);
+                        return  1;
+                    }
                 }
                 break;
             }
         }
     }
+
+    return 0;
 }

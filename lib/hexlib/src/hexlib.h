@@ -50,14 +50,13 @@ struct hexlib_frame {
     uint8_t cmd;
     /* number of received data */
     uint8_t num_bytes;
-    /* pointer of buffer_size containing data */
+    /* pointer of FRAME_SIZE containing data */
     uint8_t buffer[FRAME_SIZE];
     /* calculated checksum */
     uint8_t check;
-    /* expectec checksum from received frame */
+    /* expected checksum from received frame */
     uint8_t expected_check;
 };
-
 
 /**
  * @brief This function takes a raw string from serial port and converts it to a hexlib_frame struct.
@@ -71,7 +70,22 @@ int str_to_frame(hexlib_frame &frame, String str);
  */
 String frame_to_str(struct hexlib_frame);
 
-int sendGetCommand(uint16_t id, HardwareSerial serial);
+/**
+ * @brief Sends a GET command to the mppt device
+ * 
+ * @param id id of the register to read
+ * @param serial a HardwareSrial interface physically connencted
+ */
+void sendGetCommand(uint16_t id, HardwareSerial &serial);
+
+
+/**
+ * @brief Function to parse the stream after a command was sent and print the output to the console
+ * 
+ * 
+ */
+void parseIncoming(HardwareSerial &serial, HardwareSerial &console);
+
 
 void print_frame(struct hexlib_frame &frame);
 

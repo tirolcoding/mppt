@@ -72,16 +72,65 @@ void print_frame(struct hexlib_frame &frame) {
     Serial.println("\r\n-----------------------------------");
 }
 
-int sendGetCommand(uint16_t id, HardwareSerial serial) {
-    char temp[12];
+void sendGetCommand(uint16_t id, HardwareSerial &serial) {
     uint16_t reg = __builtin_bswap16(id);
-    /* this will not work since we cannot underflow this nigger */
     uint8_t checksum = CHECKSUM_TOTAL;
     checksum -= 0x7;
     checksum -=  (reg >> 8);
     checksum -= (reg & 0x00FF);
-    int written = snprintf(temp, sizeof(temp), ":7%04X00%02X\n", reg, checksum);
+    char temp[12];
+    snprintf(temp, sizeof(temp), ":7%04X00%02X\n", reg, checksum);
+    serial.write(temp);
+}
 
-    Serial1.write(temp);
-    return 0;
+static void printFrame(HardwareSerial &console, struct hexlib_frame &frame) {
+    console.println("RECEIVED FRAME");
+    console.print("Checksum: 0x");
+    console.print(frame.check, 16);
+    console.print("\r\nCommand: 0x");
+    console.print(frame.cmd, 16);
+    console.println();
+    for(int i = 0; i < frame.num_bytes; i++) {
+        char str[MAX_STRING_SIZE];
+        snprintf(str, MAX_STRING_SIZE, "data[%d]: 0x%02X ", i, frame.buffer[i]);
+        console.print(str);
+    }
+    console.println("\r\n-----------------------------------");
+}
+
+static bool isValidResponse(String line) {
+    return (line.indexOf(":") == 0);
+}
+
+// function is blocking so be careful
+void parseIncoming(HardwareSerial &serial, HardwareSerial &console) {
+    /* read input in lines */
+    while (serial.available()) {
+        String line = serial.readStringUntil('\n');
+        if(isValidResponse(line)) {
+            /* scan for the command */
+            switch(line.charAt(1)){
+                /* cmd successful */
+                case '1':
+                /* cmd unknown */
+                case '3':
+                /* cmd error */
+                case '4':
+                /* cmd ping */
+                case '5':
+                /* cmd get */
+                case '7':
+                /* cmd set */
+                case '8': {
+                struct hexlib_frame frame;
+                int ret = str_to_frame(frame, line);
+                if (ret != -1) {
+                    print_frame(frame);
+                    // free(frame);
+                }
+                }
+                break;
+            }
+        }
+    }
 }
